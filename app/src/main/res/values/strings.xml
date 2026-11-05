@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- WHITE LABEL: this is the name shown on the launcher -->
+    <string name="app_name">JohnnyTV OTT</string>
+
+    <!-- sign in -->
+    <string name="server_hint">Server address</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="search_everything">Search</string>
+    <string name="search_everything_hint">Search channels, films and series</string>
+    <string name="watch_hint">Press again to watch  ·  hold OK to record</string>
+    <string name="watch_hint_focus">Press OK to watch  ·  hold OK to record</string>
+    <string name="search_prompt">Type to search across Live TV, Movies and Series</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="sign_in">Sign in</string>
+    <string name="welcome_back">Welcome back</string>
+    <string name="sign_in_hint">Enter the username and password you were given.</string>
+    <string name="brand_tagline">Live TV · Movies · Series</string>
+    <string name="trouble_signing_in">Trouble signing in? Contact your provider.</string>
+    <string name="label_username">Username</string>
+    <string name="label_password">Password</string>
+    <string name="signing_in">Signing in…</string>
+    <string name="connecting">Connecting…</string>
+    <string name="fill_all_fields">Please enter your username and password</string>
+    <string name="no_server">Service unavailable right now. Please try again shortly.</string>
+    <string name="support_mode">Support mode: server address unlocked</string>
+
+    <!-- updates -->
+    <string name="update_title">Update available</string>
+    <string name="update_message">A newer version of JohnnyTV is ready. Update for the best experience.</string>
+    <string name="update_now">Update</string>
+    <string name="update_later">Later</string>
+    <string name="update_downloading">Downloading the update…</string>
+    <string name="update_percent">%1$d%%</string>
+    <string name="update_failed_title">The update did not download</string>
+    <string name="update_failed_message">The connection may have dropped. You can try again, or open the download link if this box has a browser.</string>
+    <string name="update_retry">Try again</string>
+    <string name="update_open_link">Open link</string>
+    <string name="update_permission_title">Allow JohnnyTV to install the update</string>
+    <string name="update_permission_message">Android needs your permission before an app can install an update. Choose JohnnyTV on the next screen and turn on “Allow from this source”, then come back and press Update.</string>
+    <string name="update_permission_go">Open settings</string>
+    <string name="update_no_installer">This box would not open the installer. Install the update by hand, or contact support.</string>
+
+    <!-- subscription -->
+    <string name="expiry_today">JohnnyTV Account Expires Today</string>
+    <string name="expiry_tomorrow">JohnnyTV Account Expires Tomorrow</string>
+    <string name="expiry_days">JohnnyTV Account Expires in %1$d Days</string>
+    <string name="expiry_ok">Got it</string>
+
+    <!-- sync -->
+    <string name="sync_title">Updating your content</string>
+    <string name="sync_message">This happens once. Browsing will be instant afterwards.</string>
+    <string name="count_channels">%1$s channels</string>
+    <string name="count_films">%1$s films</string>
+    <string name="count_series">%1$s series</string>
+    <string name="sync_empty">Nothing came back from the server. Check your account and try again.</string>
+    <string name="sync_failed">Could not load your content.</string>
+    <string name="sync_sign_in_again">Tap here or press OK to sign in again.</string>
+
+    <!-- sections -->
+    <string name="live_tv">Live TV</string>
+    <string name="movies">Movies</string>
+    <string name="series">Series</string>
+    <string name="favourites">Favourites</string>
+    <string name="recently_added">Recently added</string>
+    <string name="resume_minutes_in">%1$d min in</string>
+    <string name="continue_watching">Continue watching</string>
+    <string name="all_items">All</string>
+    <string name="featured">Featured</string>
+
+    <!-- sent from the phone -->
+    <string name="cast_ask_title">Change channel?</string>
+    <string name="cast_ask_message">Your phone asked to put on %1$s.</string>
+    <string name="cast_ask_yes">Put it on</string>
+    <string name="cast_ask_no">Keep watching</string>
+
+    <!-- guide -->
+    <string name="tv_guide">TV Guide</string>
+    <string name="message_got_it">Got it</string>
+    <string name="whats_on_now">What\'s on now</string>
+    <string name="guide">Guide</string>
+    <string name="channel">Channel</string>
+    <string name="no_guide_short">No guide</string>
+    <string name="up_next">Next %1$s   %2$s</string>
+    <string name="view_list">List</string>
+    <string name="view_grid">Grid</string>
+    <string name="minutes_long">%1$d min</string>
+    <string name="preview_unavailable">Preview unavailable</string>
+    <!-- My Teams -->
+    <string name="my_teams">My Teams</string>
+    <string name="my_teams_about">Pick the teams you follow. Their games show on the home screen, with a reminder before they start.</string>
+    <string name="my_teams_none">None chosen yet</string>
+    <string name="my_teams_today">Your teams today</string>
+    <string name="my_teams_hint">OK to watch  ·  hold OK to record</string>
+    <plurals name="teams_chosen">
+        <item quantity="one">%1$d team chosen</item>
+        <item quantity="other">%1$d teams chosen</item>
+    </plurals>
+    <string name="team_game_on_now">ON NOW</string>
+    <string name="team_game_next">Next game  ·  %1$s</string>
+    <string name="team_game_started">started %1$s</string>
+    <string name="team_game_in_hours">in %1$d h %2$d min</string>
+    <string name="team_game_in_minutes">in %1$d min</string>
+    <string name="team_reminder_title">%1$s starts in %2$d min</string>
+    <string name="team_reminder_watch">Watch</string>
+    <string name="team_reminder_dismiss">Dismiss</string>
+    <string name="login_version">Version %1$s</string>
+    <string name="tester_title">Try new features early on this box</string>
+    <string name="tester_on">On — this box gets features that are still being tested</string>
+    <string name="tester_off">Off — this box gets what everybody gets</string>
+    <string name="parental_title">Parental lock</string>
+    <string name="parental_on">On — the chosen folders are hidden. The PIN turns it off</string>
+    <string name="parental_off">Off — every folder is shown</string>
+    <string name="parental_set_help">Choose a 4-digit PIN. Next you pick the folders to hide — the adult ones are ticked already. Only the PIN turns it off.</string>
+    <string name="parental_enter_help">Enter the PIN to turn the lock off or to change the PIN. It starts as 0000.</string>
+    <string name="parental_turn_on">Turn on</string>
+    <string name="parental_turn_off">Turn off</string>
+    <string name="parental_pin_short">The PIN needs 4 digits.</string>
+    <string name="parental_pin_wrong">That PIN is not right.</string>
+    <string name="parental_change_pin">Change PIN</string>
+    <string name="parental_new_pin">Choose a new 4-digit PIN</string>
+    <string name="parental_pin_changed">PIN changed.</string>
+    <string name="parental_on_toast">Parental lock is on. The PIN is 0000 until it is changed under Parental lock.</string>
+    <string name="parental_choose_title">Tick the folders to hide</string>
+    <string name="parental_films_folder">Films · %1$s</string>
+    <string name="parental_series_folder">Series · %1$s</string>
+    <string name="channel_preview">Preview channels in list view</string>
+    <string name="channel_preview_on">On — the highlighted channel plays silently</string>
+    <string name="channel_preview_off">Off — uses no connection while browsing</string>
+    <string name="no_favourite_channels">No favourite channels yet. Long-press a channel in Live TV to add one.</string>
+    <string name="search_channels">Search channels</string>
+    <string name="pick_a_channel">Pick a channel to see what\'s on</string>
+    <string name="no_guide">No guide information for this channel.</string>
+    <string name="no_channels">No channels found. Try refreshing your content.</string>
+    <string name="on_now">ON NOW</string>
+    <string name="watch">Watch</string>
+    <string name="resume">Resume</string>
+    <string name="start_again">Start again</string>
+    <string name="cast_heading">Cast</string>
+    <string name="directed_by">Directed by %1$s</string>
+    <string name="no_description">The provider has not sent a description for this one.</string>
+    <string name="watched_left">%1$s watched · %2$s left</string>
+    <string name="watched_only">%1$s watched</string>
+    <string name="cast_line">Cast: %1$s</string>
+    <string name="director_line">Director: %1$s</string>
+    <string name="hours_minutes">%1$dh %2$dm</string>
+    <string name="now_playing_label">Now: %s</string>
+
+    <!-- browsing -->
+    <string name="search_hint">Search</string>
+    <string name="sort_default">Default order</string>
+    <string name="sort_az">A – Z</string>
+    <string name="nothing_here">Nothing here</string>
+    <string name="loading">Loading…</string>
+    <string name="added_favourite">Added %s to favourites</string>
+    <string name="removed_favourite">Removed %s from favourites</string>
+
+    <!-- series -->
+    <string name="season_number">Season %d</string>
+    <string name="no_episodes">No episodes found for this series.</string>
+    <string name="add_to_favourites">Add to favourites</string>
+    <string name="in_favourites">In favourites</string>
+
+    <!-- player -->
+    <string name="nothing_to_play">Nothing to play.</string>
+    <string name="reconnecting">Reconnecting to %s…</string>
+    <string name="recording_ended_early">This recording reported the end after %2$d seconds, across %1$d parts — so it did not open rather than finishing. Press back, then Repair recordings.</string>
+    <string name="could_not_play_detail">Could not play %1$s\n\n%2$s</string>
+    <string name="could_not_play">Could not play %s. The channel may be offline or the server busy.</string>
+
+    <!-- settings -->
+    <string name="settings">Settings</string>
+    <string name="account">Account</string>
+    <string name="content">Content</string>
+    <string name="refresh_content">Refresh content now</string>
+    <string name="clear_searches">Clear recent searches</string>
+    <string name="searches_cleared">Recent searches cleared</string>
+    <string name="last_error">View last error report</string>
+    <string name="no_errors">Nothing has gone wrong since the app was installed.</string>
+    <string name="close">Close</string>
+    <string name="clear_error">Clear</string>
+    <string name="sign_out">Sign out</string>
+    <string name="sign_out_confirm">Your login stays saved on this box, so you can sign back in with one press.</string>
+    <string name="cancel">Cancel</string>
+    <string name="refreshing_picture">Refreshing the picture…</string>
+    <string name="saved_logins">Saved logins</string>
+    <string name="tap_to_sign_in">Press to sign in</string>
+    <string name="forget_login">Forget</string>
+    <string name="forget_login_confirm">Remove this login from this box? The account itself is not touched.</string>
+    <string name="account_unavailable">Account details unavailable right now.</string>
+    <string name="catalogue_summary">%1$d channels · %2$d movies · %3$d series\nLast updated %4$s</string>
+    <string name="panel_label">Service %1$s</string>
+    <string name="panel_label_named">Service %1$s · %2$s</string>
+    <string name="version_label">Version %1$s (%2$d)</string>
+    <string name="wrong_login">Wrong username or password.</string>
+
+    <!-- recording -->
+    <string name="recordings">Recordings</string>
+    <string name="recordings_empty">Nothing recorded yet. Hold OK on a programme in the TV guide to record it.</string>
+    <string name="recordings_storage">%1$s · %2$s free</string>
+    <string name="recordings_scheduled">Scheduled (%1$d)</string>
+    <string name="recordings_in_progress">%1$s · recording · %2$d min · %3$s</string>
+    <string name="recordings_done_line">%1$s · %2$s · %3$d min · %4$s</string>
+    <string name="recordings_scheduled_line">%1$s · %2$s · %3$d min</string>
+    <string name="recordings_badge_recording">Recording</string>
+    <string name="recordings_badge_clean">No gaps</string>
+    <string name="recordings_badge_gaps">%1$d gap · %2$ds</string>
+    <string name="recordings_badge_failed">Nothing recorded</string>
+    <string name="recordings_badge_ready">Ready</string>
+    <string name="recordings_badge_series">Every episode</string>
+    <string name="recordings_play">Play</string>
+    <string name="recordings_keep">Keep — never delete automatically</string>
+    <string name="recordings_unkeep">Stop keeping</string>
+    <string name="recordings_stop">Stop recording</string>
+    <string name="recordings_watch_now">Watch from the beginning</string>
+    <string name="recordings_first_minute">The first minute is still being written — try again in a moment</string>
+    <string name="recording_caught_up">Caught up with the recording — the next minute is on its way…</string>
+    <string name="recordings_delete">Delete</string>
+    <string name="recordings_delete_confirm">Delete %1$s? The video file goes with it.</string>
+    <string name="recordings_delete_all">Delete all (%1$d)</string>
+    <string name="recordings_delete_all_confirm">Delete %1$d recordings and free %2$s GB?\n\nAnything marked Keep is left alone.</string>
+    <string name="recordings_convert">Make it a proper video file</string>
+    <string name="recordings_convert_working">Rewriting the recording as an MP4. Nothing is re-encoded, but ten gigabytes still takes several minutes — leave this on screen.</string>
+    <string name="recordings_join">Join into one file</string>
+    <string name="recordings_join_working">Copying the pieces into a single file. Ten gigabytes takes a few minutes — leave this on screen.</string>
+    <string name="recordings_join_done">Joined %1$d pieces into one file of %2$d MB. Press play as normal; the pieces are still there and can be deleted once you are happy.</string>
+    <string name="recordings_join_no_room">Not enough room: this needs %1$d MB and there is %2$d MB free on the drive.</string>
+    <string name="recordings_join_failed">Could not join it: %1$s</string>
+    <string name="recordings_inspect">Check the files</string>
+    <string name="recordings_inspect_working">Opening the parts and reading the first of each…</string>
+    <string name="recordings_play_parts">Play the parts directly</string>
+    <string name="recordings_repair">Repair this recording</string>
+    <string name="recordings_repair_nothing">No part files found.\n\nFolder: %1$s\nFolder exists: %2$s</string>
+    <string name="recordings_repair_working">Reading the drive and rebuilding the list. On a long recording this takes a moment.</string>
+    <string name="recordings_repair_failed">The repair could not finish: %1$s</string>
+    <string name="recordings_repair_done">Rebuilt from %1$d parts — about %2$d minutes. %3$d parts measured from their own clock, %4$d clock breaks marked.\n\nPlaylist: %5$s\nFolder: %6$s</string>
+    <string name="recordings_join_has_breaks">Not joined: this recording\'s clock jumps %1$d times (reconnects where the server came back at a different point), and one file cannot carry those breaks — it would stop at the first. Play it as it is; the playlist plays through them.</string>
+    <string name="recordings_report">Recording report</string>
+    <string name="recordings_report_clean">No gaps. The feed never dropped.</string>
+    <string name="recordings_report_gap">Gap at %1$s — %2$d seconds, reconnected on its own.</string>
+    <string name="recordings_cancel_confirm">Cancel this recording?</string>
+    <string name="recordings_cancel_yes">Cancel it</string>
+    <string name="recordings_nothing_title">Nothing to play</string>
+    <string name="recordings_nothing_message">This recording has no video in it.</string>
+
+    <string name="record_title">Record</string>
+    <string name="record_this">Record</string>
+    <string name="record_now">Record now</string>
+    <string name="record_series">Every episode</string>
+    <string name="record_anyway">Record anyway</string>
+    <string name="record_padding">Starts %1$d min early and runs %2$d min over.</string>
+    <string name="record_padding_sport">Sport, so it is given extra room at the end.</string>
+    <string name="record_space_ok">Needs about %1$s. %2$s has %3$s free.</string>
+    <string name="record_space_low">Needs about %1$s, but %2$s only has %3$s free. Older watched recordings will be cleared to make room.</string>
+    <string name="record_no_storage">No drive found. Plug a USB stick or hard drive into the box.</string>
+    <string name="record_one_connection">Your line allows one connection, so while this records you can watch this channel but not another one.</string>
+    <string name="record_started">Recording %1$s</string>
+    <string name="record_scheduled">Scheduled for %1$s</string>
+    <string name="record_busy">Something is already recording. Stop that first.</string>
+    <string name="record_clash_title">Two at once</string>
+    <string name="record_clash_message">This overlaps %1$s, and your line allows one connection at a time.</string>
+    <string name="record_live_message">Record %1$s for the next %2$d hours.\n\n%3$s</string>
+    <string name="recording_catching_up">Caught up with the recording — waiting for more…</string>
+    <string name="preview_recording">Preview paused — a recording is using the connection</string>
+    <string name="record_hint">Hold OK to record</string>
+    <string name="record_watching_recording">Playing from the recording, a few seconds behind live</string>
+    <string name="recordings_report_run">%1$s to %2$s — %3$d short drops, %4$d seconds lost in total, each one reconnected on its own.</string>
+    <string name="record_busy_watching">Recording in progress. Your line allows one connection, so this channel has to stay on until it finishes.</string>
+
+    <string name="guide_check_row">Refresh the guide</string>
+    <string name="guide_check_working">Asking the service for listings…</string>
+    <string name="playback_log_row">Last playback, step by step</string>
+    <string name="guide_log_row">Last guide visit, step by step</string>
+    <string name="guide_log_empty">Nothing yet. Open the TV guide, then look here.</string>
+    <string name="playback_log_empty">Nothing yet. Play a recording or a live channel, then look here.</string>
+    <string name="clear_favourites">Clear all favourites</string>
+    <string name="clear_favourites_confirm">Remove every channel, film and series from Favourites? Nothing else is affected.</string>
+    <string name="clear_favourites_show">Show what is stored</string>
+    <string name="clear_favourites_yes">Clear them</string>
+    <string name="clear_favourites_done">Favourites cleared</string>
+    <string name="away_row">Watch recordings from away</string>
+    <string name="away_off">Off — recordings on other TVs are found at home only</string>
+    <string name="away_help">Type the Tailscale address of the box holding the recordings — it looks like 100.119.61.127. Both boxes need Tailscale signed into the same account. Leave it empty to use the home network only.</string>
+    <string name="away_forget">Forget</string>
+    <string name="share_row">Share recordings with other TVs</string>
+    <string name="share_on">On — other TVs in the house can watch this box\'s recordings</string>
+    <string name="share_off">Off</string>
+    <string name="from_other_tv">From %1$s</string>
+    <string name="from_other_tv_line">%1$s · %2$s · %3$d min</string>
+    <string name="phone_recordings">Check for phone recordings</string>
+    <string name="phone_recordings_looking">Looking in the letterbox…</string>
+    <string name="check_device">Check my device</string>
+    <string name="check_no_drive">No USB drive is plugged in. Recordings will be saved on the box itself, which has far less room.</string>
+    <string name="check_drive_found">%1$s is plugged in and ready.</string>
+    <string name="check_nowhere_to_write">There is nowhere to save recordings on this device.</string>
+    <string name="check_space">%1$s has room for about %2$s hours of HD.</string>
+    <string name="check_writable">Writing to it works.</string>
+    <string name="check_not_writable">Cannot write to it. On a Firestick, use the original power brick with the OTG cable; on a box, try a different USB port.</string>
+    <string name="check_recording_now">Something is recording right now.</string>
+    <string name="check_idle">Nothing is recording at the moment.</string>
+    <string name="recording_storage_row">Save recordings to</string>
+    <string name="record_by_time">Record by time</string>
+    <string name="record_by_time_detail">For channels with no guide — PPV, events, 24/7</string>
+    <string name="record_by_time_which_channel">Which channel?</string>
+    <string name="record_by_time_search_hint">Type part of the channel name</string>
+    <string name="record_by_time_find">Find</string>
+    <string name="record_by_time_none">No channel found matching \"%1$s\".</string>
+    <string name="record_by_time_starts">Starts at</string>
+    <string name="record_by_time_stops">Stops at</string>
+    <string name="record_by_time_summary">%1$s · %2$d minutes</string>
+    <string name="record_by_time_no_channels">The channel list has not loaded yet.</string>
+    <string name="record_by_time_set">%1$s — starts %2$s, runs %3$d minutes.\n\nIt starts 2 minutes early and runs 10 minutes over, because a channel with no guide gives no warning if things run late.</string>
+    <string name="save">Save</string>
+    <string name="home_expires">Expires %1$s</string>
+    <string name="weather_degrees">%1$d°</string>
+    <string name="weather_town_row">Weather location</string>
+    <string name="weather_town_automatic">Worked out from your connection</string>
+    <string name="weather_town_prompt">Type your town, or leave it empty to work it out from your connection.</string>
+    <string name="weather_town_hint">Town or city</string>
+    <string name="weather_town_not_found">Could not find that town. Check the spelling, or leave it empty.</string>
+
+    <!-- Multiview: two channels side by side on a one-connection line. -->
+    <string name="multiview">Multiview</string>
+    <string name="multiview_empty">Press OK to choose a channel</string>
+    <string name="multiview_pick_folder">Choose a folder</string>
+    <string name="multiview_change">Change channel</string>
+    <string name="multiview_full_screen">Watch this one full screen</string>
+    <string name="multiview_close_pane">Close this screen</string>
+    <!-- Home screen -->
+    <string name="home_refresh">Refresh</string>
+    <string name="home_recently_added">Recently added</string>
+    <string name="home_press_ok">Press OK to open</string>
+    <string name="home_count_channels">%1$s channels</string>
+    <string name="home_count_series">%1$s series</string>
+    <string name="home_count_movies">%1$s movies</string>
+    <string name="player_add_screen">Add another screen</string>
+    <string name="multiview_pick_channel">Choose a channel</string>
+    <string name="multiview_show_numbers">Show the buffer numbers</string>
+    <string name="multiview_hide_numbers">Hide the buffer numbers</string>
+    <string name="multiview_already_on">That channel is already on the other screen.</string>
+    <string name="multiview_recording">A recording is using the line, so multiview has to wait until it finishes.</string>
+</resources>

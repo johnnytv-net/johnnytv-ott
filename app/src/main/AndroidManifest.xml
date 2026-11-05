@@ -1,25 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!--
+        So an update can be installed from inside the app. A television box
+        usually has no browser to hand the download link to, and without this
+        the only way to update is somebody arriving with a USB stick.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!--
+        RECORDING.
+
+        A foreground service is the only thing Android reliably leaves running
+        when memory gets tight, which is what stops a recording dying halfway
+        through on a Firestick. The wake lock holds the box up while it writes -
+        a television switched off at the set still has to finish the game - and
+        the alarm permissions are what let a recording set for tonight actually
+        start tonight rather than whenever the box next wakes up.
+
+        Nothing here asks the customer for anything: recordings are written to
+        the app's own folder on the drive, which needs no storage permission at
+        all. That matters on a television, where granting a permission means
+        hunting through settings with a remote.
+    -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
     <application
+        android:name=".JohnnyTvApp"
         android:allowBackup="false"
-        android:banner="@drawable/banner"
+        android:largeHeap="true"
+        android:banner="@drawable/tv_banner"
         android:icon="@mipmap/ic_launcher"
-        android:label="JohnnyTV OTT"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
         android:usesCleartextTraffic="true"
-        android:theme="@style/Theme.OTT">
+        android:theme="@style/AppTheme">
+
+        <!--
+            ONE WINDOW, NEVER TWO.
+
+            After an update installs, the box could be left holding the old
+            instance alongside the new one - two entries in the recents list,
+            two copies of the app. The old one still had the previous channel
+            list in memory, so whichever one you happened to open decided what
+            you saw, and a lineup that had plainly been fixed looked untouched.
+            singleTask means the app has one task and coming back to it brings
+            that task forward rather than starting a second.
+        -->
         <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensorLandscape"
             android:exported="true"
-            android:configChanges="orientation|screenSize|keyboardHidden"
-            android:screenOrientation="landscape">
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".SyncActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
+
+        <activity android:name=".HomeActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
+
+        <activity
+            android:name=".BrowseActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity android:name=".SeriesActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
+        <activity android:name=".MovieActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
+
+        <activity android:name=".EpgActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
+
+        <activity android:name=".RecordingsActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
+
+        <activity android:name=".SettingsActivity"
+            android:screenOrientation="sensorLandscape" android:exported="false" />
+
+        <activity
+            android:name=".PlayerActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:theme="@style/AppTheme.Fullscreen" />
+
+        <activity
+            android:name=".MyTeamsActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode" />
+
+        <activity
+            android:name=".MultiViewActivity"
+            android:screenOrientation="sensorLandscape"
+            android:exported="false"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:theme="@style/AppTheme.Fullscreen" />
+
+
+        <!--
+            The recorder. Its own process would be tidier still, but it shares
+            the login and the catalogue with the app, so it runs in the same one
+            and stays small by never touching the player or any artwork.
+        -->
+        <service
+            android:name=".RecorderService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Offers this box's recordings to the other televisions in the house. -->
+        <service
+            android:name=".ShareService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <!-- Goes and looks in the letterbox for recordings set from a phone. -->
+        <receiver
+            android:name=".PostmanReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".RecordAlarmReceiver"
+            android:exported="false" />
+
+        <!-- Recordings set for tonight have to survive the power going out. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+            Lets the package installer read the downloaded APK out of our cache
+            without the file itself ever being world-readable.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
+
 </manifest>

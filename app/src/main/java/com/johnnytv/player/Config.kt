@@ -1,0 +1,188 @@
+package com.johnnytv.player
+
+/**
+ * WHITE-LABEL CONFIG
+ *
+ * Everything you change per build lives here (plus app_name in strings.xml, the
+ * colours in colors.xml, the icons in res/mipmap-*, and applicationId in
+ * app/build.gradle.kts).
+ */
+object Config {
+
+    /**
+     * THE IMPORTANT ONE.
+     *
+     * A small JSON file you host. The app reads it every time it starts, so you can
+     * change the portal address, post a message, or announce an update WITHOUT
+     * rebuilding the app or asking anyone to reinstall.
+     *
+     * Free to host: put config.json in a PUBLIC GitHub repo and use its raw URL.
+     * Leave blank and the app falls back to asking the user for a server address.
+     */
+    const val CONFIG_URL: String =
+        "https://raw.githubusercontent.com/johnnytv-net/johnnytv-config/main/config.json"
+
+    /**
+     * Every service this build accepts logins for, best guess first.
+     *
+     * A customer types only a username and password; the app works out which of
+     * these knows them and remembers it for next time. Values may be plain
+     * addresses or the base64 form. Used when CONFIG_URL is unreachable, and
+     * merged with whatever config.json lists.
+     */
+    /*
+     * ONLY WHAT IS STILL STANDING.
+     *
+     * This list is the lifeboat: what a box falls back on when config.json
+     * cannot be reached at all. An address that has been retired must come out
+     * of it, because a built-in address cannot be removed any other way - a
+     * service taken out of config.json was still being tried by every install,
+     * and every start spent fifteen seconds waiting on a machine that had been
+     * switched off for good.
+     *
+     * Equally it has to hold every address that IS still standing. Cut down
+     * to one service, a box that cannot reach config.json can only offer that
+     * one - and everybody else is told their password is wrong.
+     */
+    val SERVERS: List<String> = listOf(
+        "aHR0cDovL2VkZ2UuYno6ODA4MA=="       // edge.bz:8080 - OTT is Edge only
+    )
+
+    /** OTT only ever talks to this panel; anything else a config or the site names is ignored. */
+    const val ONLY_HOST: String = "edge.bz"
+
+    /** Kept for older builds; SERVERS is the list that matters now. */
+    const val DEFAULT_SERVER: String = ""
+
+    /**
+     * The one password every customer is given, alongside their own name.
+     *
+     * Kept here only so a box can ask the site again at each start and follow a
+     * customer who has been moved between panels. It is no secret - every
+     * customer is told it - and it opens nothing on its own: without a name the
+     * site has nothing to answer with.
+     */
+    const val CUSTOMER_PASSWORD: String = "johnnytv"
+
+    /** Set both for a build that skips the login screen entirely. Normally left blank. */
+    const val PRESET_USERNAME: String = ""
+    const val PRESET_PASSWORD: String = ""
+
+    /**
+     * Buffering.
+     *
+     * BUFFER_FOR_PLAYBACK is the only one that affects how fast a channel opens:
+     * it's how many milliseconds must be downloaded before the picture starts.
+     * MIN/MAX are how far ahead the player keeps reading once it's running -
+     * raise those if customers report stuttering on weaker connections.
+     */
+    const val MIN_BUFFER_MS: Int = 15_000
+    const val MAX_BUFFER_MS: Int = 60_000
+
+    /*
+     * Films and episodes are files, not broadcasts: everything after the
+     * point being watched already exists and can be fetched ahead of time.
+     * So they hold a good deal more in hand than a live channel can - enough
+     * that a slow patch on the portal passes without the picture stopping.
+     * The size limit is there for boxes with little memory; a very high
+     * bitrate film simply holds fewer seconds.
+     */
+    const val VOD_MIN_BUFFER_MS: Int = 45_000
+    const val VOD_MAX_BUFFER_MS: Int = 150_000
+    const val VOD_BUFFER_BYTES: Int = 64 * 1024 * 1024
+    /*
+     * HOW MUCH IS IN HAND WHEN THE PICTURE APPEARS.
+     *
+     * This number is the whole story of live buffering. The portal sends a
+     * burst when a channel opens and then only as fast as the programme plays,
+     * so the lead the player holds while watching is the burst plus however
+     * long it waited before starting - and nothing ever adds to it. Eight
+     * tenths of a second, the old figure, meant any wobble longer than that
+     * emptied the buffer and put the spinner up, which is why the bought
+     * players (which wait several seconds) rode out hiccups ours did not.
+     * Three seconds costs about two seconds once per channel change and buys
+     * them back on every wobble after.
+     */
+    const val BUFFER_FOR_PLAYBACK_MS: Int = 3_000
+    const val BUFFER_AFTER_REBUFFER_MS: Int = 5_000
+
+    /**
+     * The head start given to a channel that has stalled on this line before.
+     *
+     * Six seconds of video in hand before the picture appears, rather than
+     * three. It costs a couple of seconds when the channel opens and it
+     * buys back every freeze that would otherwise have happened while watching,
+     * which is the trade anybody would take on a channel that has already
+     * misbehaved twice.
+     */
+    const val BUFFER_FOR_PLAYBACK_DEEP_MS: Int = 6_000
+
+    /**
+     * Live streams are tried in this order until one plays.
+     *
+     * .ts is the portal's raw feed and starts almost immediately. .m3u8 wraps the
+     * same feed in a playlist the player must fetch and then read several chunks
+     * of before it can show anything, which costs several seconds on open - so it
+     * sits second, as the fallback for channels that only publish HLS.
+     */
+    val LIVE_CONTAINERS: List<String> = listOf("ts", "m3u8")
+
+    /**
+     * Which Live TV category to open on.
+     *
+     * Most portals list their pay-per-view and event placeholders first, so the
+     * full channel list opens on a screen full of "PPV" tiles. Name the categories
+     * you would rather people land on, best first: the app takes the earliest one
+     * that actually exists on the portal, preferring an exact name match over a
+     * partial one, and falls back to the full list if none of them are there.
+     * Leave the list empty to always open on All.
+     */
+    val PREFERRED_LIVE_CATEGORIES: List<String> = listOf("CANADA", "SPORTS", "ENGLISH")
+
+    /**
+     * How the Live TV category list is ordered.
+     *
+     * Portals list their categories in whatever order suits them, which usually
+     * means pay-per-view and event blocks near the top. Anything whose name
+     * contains a word from CATEGORY_FIRST is lifted to the top, in the order
+     * written here, then the CATEGORY_EVENTS blocks, then everything the portal
+     * sent in its own order, and CATEGORY_LAST at the very bottom.
+     *
+     * The events used to be buried at the bottom, which is right for a portal
+     * that opens on a wall of pay-per-view placeholders - but wrong once the
+     * good categories are pinned above them. Somebody looking for a fight card
+     * is looking for it near the sport.
+     */
+    /*
+     * CANADA, FRENCH, THE STATES, THEN BRITAIN.
+     *
+     * Dino sends seventy-nine categories in its own order, which opens on 4K
+     * filler and buries Canada near the bottom - forty categories below the
+     * British ones. For somebody in Victoria that is the wrong way round, so
+     * the order here is the order a customer here would ask for.
+     *
+     * Matching is on part of a name, so "CANADA" catches the Canadian blocks
+     * and the French one beside it, "USA" catches the whole American run, and
+     * the pipes around "|UK|" keep it from matching a word that merely contains
+     * those letters.
+     *
+     * Anything not named stays exactly where the portal put it, so this does no
+     * harm on the other two panels, whose categories are named differently.
+     */
+    val CATEGORY_FIRST: List<String> = listOf(
+        "CANADA",        // |AM| CANADA, and |NA| CANADA FR beside it
+        "HOCKEY",        // |NA| HOCKEY LEAGUE
+        "AHL",           // |AM| AHL PPV
+        "USA",           // the whole |NA| USA run
+        "|UK|",          // then Britain
+        "IRELAND",
+        "ENGLISH",
+        "SPORTS"
+    )
+    val CATEGORY_EVENTS: List<String> = listOf("PPV", "PAY PER VIEW", "WWE")
+
+    /** Last wherever it is found, so nobody lands on it by scrolling. */
+    val CATEGORY_LAST: List<String> = listOf("ADULT", "XXX", "18+", "FOR ADULTS")
+
+    const val USER_AGENT: String = "JohnnyTV-OTT/2.0 (Android)"
+}

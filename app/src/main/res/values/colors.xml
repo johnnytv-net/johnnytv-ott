@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      WHITE LABEL: the whole app is themed from these five colours.
+      bg_base is true black so it switches an OLED panel fully off - that is what
+      makes edges look crisp rather than washed. bg_surface is the faint lift that
+      keeps cards and rows visible against it; do not set the two the same.
+    -->
+    <color name="brand_primary">#FF2E7DF7</color>
+    <color name="brand_primary_dark">#FF1B4FA8</color>
+    <color name="brand_accent">#FF32D6A0</color>
+    <color name="bg_base">#FF000000</color>
+    <color name="bg_surface">#FF111519</color>
+
+    <color name="text_primary">#FFF2F5F8</color>
+    <color name="text_secondary">#FFA6B2BF</color>
+    <!-- TV guide. Blocks sit just above the background so the grid reads as rows
+         without any lines being drawn; the focused block flips to near-white with
+         dark text, the way a set-top box guide does. -->
+    <!--
+      TRUE NEUTRAL GREY, ON PURPOSE.
+
+      These were blue-greys, which looked right on a monitor and came out
+      periwinkle on a television: a set with its colour pushed up amplifies any
+      tint it is given, and black and white survive only because they have no
+      tint to amplify. Equal red, green and blue has nothing to amplify either,
+      so it stays grey on every set at every setting.
+    -->
+    <color name="epg_block">#FF242424</color>
+    <color name="epg_block_on_air">#FF323232</color>
+    <color name="epg_block_focused">#FFF5F5F5</color>
+    <color name="epg_on_dark">#FF0C0C0C</color>
+    <color name="epg_now">#FF6FB3FF</color>
+
+    <!-- Loading indicator: a light blue arc turning on a near-black track. -->
+    <color name="spinner_track">#FF1A1F27</color>
+    <color name="spinner_arc">#FF4C93FF</color>
+
+    <color name="focus_fill">#FF2E7DF7</color>
+    <color name="selected_fill">#552E7DF7</color>
+    <!-- A line about to lapse: noticed, but not alarming. -->
+    <color name="warning">#E8A33D</color>
+</resources>

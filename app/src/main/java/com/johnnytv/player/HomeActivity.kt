@@ -1,0 +1,674 @@
+package com.johnnytv.player
+
+import android.content.Intent
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import coil.load
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+class HomeActivity : AppCompatActivity() {
+
+    private lateinit var prefs: Prefs
+    private lateinit var clock: TextView
+    private lateinit var today: TextView
+
+    /** What the artwork panel is showing, and what opening it should do. */
+    private class Feature(
+        val film: Boolean,
+        val id: String,
+        val name: String,
+        val cover: String,
+        val extension: String = ""
+    )
+
+    private var featured: Feature? = null
+
+    /** Which choice of artwork is current, so a slow one cannot land on top of a newer. */
+    private var featureTurn = 0
+
+    private val handler = Handler(Looper.getMainLooper())
+
+    /**
+     * The weather line, fetched in the background and drawn only if it arrives.
+     *
+     * Never blocks anything: the home screen is complete without it, and a
+     * customer with a portal but no general internet access still gets an app
+     * that works rather than one that sits waiting on a weather service.
+     */
+    private fun showWeather() {
+        val cached = Weather.lastKnown()
+        if (cached != null) {
+            drawWeather(cached)
+            return
+        }
+        kotlin.concurrent.thread {
+            val now = runCatching { Weather.fetch(this) }.getOrNull() ?: return@thread
+            handler.post { if (!isFinishing) drawWeather(now) }
+        }
+    }
+
+    /**
+     * When the line runs out, on the home screen.
+     *
+     * The one piece of account information worth a customer seeing without
+     * going to look for it - a line that lapses on a Friday night is a phone
+     * call either way, and a fortnight's warning turns it into a renewal
+     * instead. Shown as a date rather than a countdown, because "20 Dec" is
+     * something somebody can act on and "63 days" is not.
+     *
+     * Yellow throughout rather than only at the end: a renewal date is worth
+     * seeing every day, and a colour that appears in the last week is a colour
+     * nobody has learned to read by the time it matters.
+     */
+    private fun showExpiry() {
+        val label = findViewById<android.widget.TextView>(R.id.homeExpiry)
+        val expires = Prefs(this).expiresAt
+        if (expires <= 0L) {
+            label.visibility = View.GONE
+            return
+        }
+        val clock = java.text.SimpleDateFormat("d MMM", java.util.Locale.getDefault())
+        label.text = getString(R.string.home_expires, clock.format(java.util.Date(expires)))
+        label.visibility = View.VISIBLE
+    }
+
+    private fun drawWeather(now: Weather.Now) {
+        val icon = findViewById<android.widget.TextView>(R.id.homeWeatherIcon)
+        val degrees = findViewById<android.widget.TextView>(R.id.homeWeatherNow)
+        val town = findViewById<android.widget.TextView>(R.id.homeWeatherTown)
+        icon.text = now.icon
+        degrees.text = getString(R.string.weather_degrees, now.degrees)
+        town.text = now.town
+        icon.visibility = View.VISIBLE
+        degrees.visibility = View.VISIBLE
+        town.visibility = if (now.town.isBlank()) View.GONE else View.VISIBLE
+    }
+
+    /**
+     * Checks whether the phone has asked for a channel.
+     *
+     * Only while the home screen is in front, which is exactly when the
+     * television is idle and has nothing to lose by switching. A few hundred
+     * bytes every five seconds - less than one second of video.
+     */
+    private val castWatch = object : Runnable {
+        override fun run() {
+            lifecycleScope.launch {
+                val command = withContext(Dispatchers.IO) { CastLink.peek(prefs) }
+                if (command != null && !isFinishing) obeyCast(command)
+            }
+            handler.postDelayed(this, 5_000L)
+        }
+    }
+    private val tick = object : Runnable {
+        override fun run() {
+            updateClock()
+            handler.postDelayed(this, 20_000L)
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        prefs = Prefs(this)
+
+        if (!prefs.isLoggedIn) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        }
+
+        setContentView(R.layout.activity_home)
+        showWeather()
+        showExpiry()
+        clock = findViewById(R.id.homeClock)
+        today = findViewById(R.id.homeDate)
+
+        if (!Catalog.isLoaded) Catalog.load(this)
+
+        findViewById<View>(R.id.tileLive).setOnClickListener { open(Kind.LIVE) }
+        findViewById<View>(R.id.tileMovies).setOnClickListener { open(Kind.VOD) }
+        findViewById<View>(R.id.tileSeries).setOnClickListener { open(Kind.SERIES) }
+
+        findViewById<View>(R.id.homeSettings).setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        findViewById<View>(R.id.homeSearch).setOnClickListener {
+            // One box across everything - channels, films and series together.
+            startActivity(
+                Intent(this, BrowseActivity::class.java)
+                    .putExtra(BrowseActivity.EXTRA_SEARCH_ALL, true)
+            )
+        }
+        findViewById<View>(R.id.homeRecordings).setOnClickListener {
+            RecordingsActivity.open(this)
+        }
+        findViewById<View>(R.id.homeEpg).setOnClickListener {
+            startActivity(Intent(this, EpgActivity::class.java))
+        }
+        findViewById<View>(R.id.homeMultiview).setOnClickListener {
+            MultiViewActivity.open(this)
+        }
+        findViewById<View>(R.id.homeRefresh).setOnClickListener {
+            startActivity(
+                Intent(this, SyncActivity::class.java).putExtra(SyncActivity.EXTRA_FORCE, true)
+            )
+            finish()
+        }
+        findViewById<View>(R.id.featuredPanel).setOnClickListener { openFeatured() }
+
+        fitToScreen()
+        // The prompt on the artwork only belongs there while the remote does.
+        val hint = findViewById<View>(R.id.featuredHint)
+        findViewById<View>(R.id.featuredPanel).setOnFocusChangeListener { _, focused ->
+            hint.visibility = if (focused && featured != null) View.VISIBLE else View.GONE
+        }
+
+        loadArtwork()
+        findViewById<View>(R.id.tileLive).requestFocus()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        updateClock()
+        handler.post(tick)
+        handler.post(castWatch)
+        showMessage()
+        checkExpiry()
+        showTeams()
+        handler.postDelayed(teamWatch, TEAM_CHECK_MS)
+        // Somebody setting a recording from the car park should find it already
+        // on the list when they walk in, rather than up to five minutes later.
+        kotlin.concurrent.thread { runCatching { Postman.collect(this@HomeActivity) } }
+    }
+
+    /** Puts on whatever the phone asked for, if this television knows the channel. */
+    private fun obeyCast(command: CastLink.Command) {
+        val channel = Catalog.live.firstOrNull { it.streamId == command.id }
+        // Acknowledged either way: a channel this box cannot find would otherwise
+        // sit in the letterbox being retried every five seconds.
+        lifecycleScope.launch { withContext(Dispatchers.IO) { CastLink.ack(prefs) } }
+        if (channel == null) return
+        Catalog.playbackQueue = Catalog.live
+        PlayerActivity.start(
+            this,
+            urls = prefs.client().liveUrls(channel.streamId),
+            title = channel.name,
+            kind = Kind.LIVE,
+            contentId = channel.streamId
+        )
+    }
+
+    // ---------- a message from JohnnyTV ----------
+
+    /**
+     * Whatever is written in config.json, shown until it is read.
+     *
+     * The text itself is the record of what has been read, so writing a new
+     * message is enough to make it appear again - there is no number to
+     * remember to change, and clearing the field takes it off every screen.
+     *
+     * The cached message goes up straight away, then config.json is fetched
+     * again in the background. Without that second look a message would only
+     * ever arrive on a cold start, and a box on a shelf that nobody switches
+     * off would never see one at all.
+     */
+    private fun showMessage() {
+        drawMessage()
+        lifecycleScope.launch {
+            val fresh = withContext(Dispatchers.IO) {
+                runCatching { RemoteConfigLoader.fetch(Config.CONFIG_URL) }.getOrNull()
+            } ?: return@launch
+            if (isFinishing || isDestroyed) return@launch
+            prefs.rememberSwitches(fresh.steadyLive, fresh.steadyLiveTesters, fresh.startTiming)
+            val notice = fresh.notice.trim()
+            if (notice == prefs.message.trim()) return@launch
+            prefs.message = notice
+            drawMessage()
+        }
+    }
+
+    /**
+     * Splits a message into the bit that shouts and the bit that explains.
+     *
+     * Written as one line in config.json, so the break has to come from the
+     * punctuation somebody would type anyway: a line break, or a dash with
+     * spaces around it. "Watch JohnnyTV anywhere for $5 - phone, laptop, car"
+     * becomes a headline and a quieter second line. No dash, no second line,
+     * and the whole thing is simply the headline.
+     */
+    private fun splitMessage(message: String): Pair<String, String> {
+        val breaks = listOf("\n", " — ", " – ", " - ")
+        for (mark in breaks) {
+            val at = message.indexOf(mark)
+            if (at > 0) {
+                val head = message.substring(0, at).trim()
+                val rest = message.substring(at + mark.length).trim()
+                if (head.isNotEmpty() && rest.isNotEmpty()) return head to rest
+            }
+        }
+        return message to ""
+    }
+
+    private fun drawMessage() {
+        val band = findViewById<View>(R.id.homeMessage)
+        val text = findViewById<TextView>(R.id.homeMessageText)
+        val detail = findViewById<TextView>(R.id.homeMessageDetail)
+        val dismiss = findViewById<TextView>(R.id.homeMessageDismiss)
+
+        val message = prefs.message.trim()
+        if (message.isEmpty() || message == prefs.messageRead) {
+            val hadFocus = band.hasFocus()
+            band.visibility = View.GONE
+            if (hadFocus) findViewById<View>(R.id.tileLive).requestFocus()
+            return
+        }
+
+        val (headline, rest) = splitMessage(message)
+        text.text = headline
+        detail.text = rest
+        detail.visibility = if (rest.isEmpty()) View.GONE else View.VISIBLE
+        band.visibility = View.VISIBLE
+        dismiss.setOnClickListener {
+            prefs.messageRead = message
+            band.visibility = View.GONE
+            findViewById<View>(R.id.tileLive).requestFocus()
+        }
+        // The band is put under the remote rather than left to be found. A
+        // full-width strip of text sitting above a row of tiles is easy to
+        // skip past, and a message nobody can dismiss is one that comes back
+        // for ever.
+        dismiss.requestFocus()
+    }
+
+    // ---------- subscription reminder ----------
+
+    /**
+     * Warns a customer whose line is nearly up.
+     *
+     * The date comes from the portal's own answer at sign-in, so it is right for
+     * every customer on either service with no list to keep by hand - and no
+     * customer names sitting in a public config file. The last known date is kept
+     * on the device, so the warning still appears on a day the portal is slow.
+     *
+     * Shown once per launch from a fortnight out, and every time Home appears in
+     * the last three days, when it stops being information and starts being
+     * urgent.
+     */
+    private fun checkExpiry() {
+        lifecycleScope.launch {
+            val known = prefs.expiresAt
+            val fresh = withContext(Dispatchers.IO) {
+                runCatching { prefs.client().accountExpiry() }.getOrDefault(0L)
+            }
+            if (fresh > 0L) prefs.expiresAt = fresh
+            val expiry = if (fresh > 0L) fresh else known
+            if (expiry <= 0L || isFinishing) return@launch
+
+            val left = expiry - System.currentTimeMillis()
+            val days = TimeUnit.MILLISECONDS.toDays(left).toInt()
+            if (left <= 0L || days > REMIND_WITHIN_DAYS) return@launch
+
+            val today = System.currentTimeMillis() / TimeUnit.DAYS.toMillis(1)
+            val urgent = days <= URGENT_DAYS
+
+            // This runs whenever Home comes back to the front, which includes
+            // backing out of a channel - so without a guard the same notice went
+            // up again and again. That is nagging rather than reminding, and a
+            // warning people learn to dismiss has stopped working. From a
+            // fortnight out it appears once per launch; inside the last few days
+            // it returns every time, because by then missing it costs somebody
+            // their television.
+            if (!urgent) {
+                if (remindedThisLaunch || prefs.expiryShownOn == today) return@launch
+            }
+            remindedThisLaunch = true
+            prefs.expiryShownOn = today
+            showExpiryDialog(days)
+        }
+    }
+
+    private fun showExpiryDialog(days: Int) {
+        val headline = when {
+            days <= 0 -> getString(R.string.expiry_today)
+            days == 1 -> getString(R.string.expiry_tomorrow)
+            else -> getString(R.string.expiry_days, days)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(headline)
+            .setPositiveButton(R.string.expiry_ok, null)
+            .show()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        handler.removeCallbacks(tick)
+        handler.removeCallbacks(castWatch)
+        handler.removeCallbacks(teamWatch)
+    }
+
+    // ---------- my teams ----------
+
+    /** Keeps the games panel current and says when one is about to start. */
+    private val teamWatch = object : Runnable {
+        override fun run() {
+            showTeams()
+            checkTeamReminder()
+            handler.postDelayed(this, TEAM_CHECK_MS)
+        }
+    }
+
+    /**
+     * Today's games for the teams being followed, under the artwork. With no
+     * teams chosen, or nothing on, the panel is not there and the artwork has
+     * the whole column - nobody is shown an empty box.
+     */
+    /*
+     * The games panel used to be hidden outright on a short screen, on the
+     * assumption that a phone had no room for it. It has room for one line,
+     * and one line is the whole point of the thing - so a phone gets the next
+     * game rather than nothing at all, and the panel is simply smaller.
+     */
+    private fun showTeams() {
+        val panel = findViewById<View>(R.id.teamsPanel)
+        val room = if (shortScreen()) 1 else 3
+        lifecycleScope.launch {
+            val now = System.currentTimeMillis()
+            val games = withContext(Dispatchers.Default) {
+                runCatching { MyTeams.games(this@HomeActivity, now) }.getOrDefault(emptyList())
+            }.take(room)
+            // Teams with nothing on today still get a line: when they play next.
+            val later = withContext(Dispatchers.Default) {
+                runCatching { MyTeams.upcoming(this@HomeActivity, now) }.getOrDefault(emptyList())
+            }.filter { next -> games.none { it.team.key == next.team.key } }
+            val following = withContext(Dispatchers.Default) { MyTeams.chosen(this@HomeActivity).size }
+            if (isFinishing || isDestroyed) return@launch
+            val folders = HashMap<String, String>()
+            for (category in Catalog.liveCategories) folders[category.id] = category.name
+            val clock = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT)
+            val rows = intArrayOf(R.id.teamGame1, R.id.teamGame2, R.id.teamGame3)
+            rows.forEachIndexed { index, id ->
+                val row = findViewById<View>(id)
+                if (index >= room) {
+                    row.visibility = View.GONE
+                    return@forEachIndexed
+                }
+                if (shortScreen()) fitRowToScreen(row)
+                val game = games.getOrNull(index)
+                if (game == null) {
+                    val next = later.getOrNull(index - games.size)
+                    if (next == null) {
+                        row.visibility = View.GONE
+                        return@forEachIndexed
+                    }
+                    // Not today: say when. There is nothing to watch yet, so
+                    // pressing it does nothing.
+                    row.visibility = View.VISIBLE
+                    val badge = row.findViewById<ImageView>(R.id.gameLogo)
+                    if (next.team.logo.isBlank()) badge.setImageResource(R.drawable.logo)
+                    else badge.load(next.team.logo) { crossfade(true) }
+                    val day = java.text.SimpleDateFormat("EEE d MMM", java.util.Locale.getDefault())
+                    row.findViewById<TextView>(R.id.gameTitle).text = next.title
+                    row.findViewById<TextView>(R.id.gameSub).text =
+                        getString(R.string.team_game_next, day.format(Date(next.startsAt)))
+                    row.findViewById<TextView>(R.id.gameTime).text = clock.format(Date(next.startsAt))
+                    row.setOnClickListener(null)
+                    row.setOnLongClickListener(null)
+                    return@forEachIndexed
+                }
+                row.visibility = View.VISIBLE
+                val logo = row.findViewById<ImageView>(R.id.gameLogo)
+                if (game.team.logo.isBlank()) {
+                    logo.setImageResource(R.drawable.logo)
+                } else {
+                    logo.load(game.team.logo) { crossfade(true) }
+                }
+                row.findViewById<TextView>(R.id.gameTitle).text = game.title
+                val folder = folders[game.channel.categoryId].orEmpty()
+                val started = game.startsAt <= now
+                val when_ = if (started) {
+                    getString(R.string.team_game_started, clock.format(Date(game.startsAt)))
+                } else {
+                    val minutes = ((game.startsAt - now) / 60_000L).toInt()
+                    if (minutes >= 60) getString(R.string.team_game_in_hours, minutes / 60, minutes % 60)
+                    else getString(R.string.team_game_in_minutes, minutes.coerceAtLeast(1))
+                }
+                row.findViewById<TextView>(R.id.gameSub).text =
+                    if (folder.isBlank()) when_ else "$folder  \u00B7  $when_"
+                row.findViewById<TextView>(R.id.gameTime).text =
+                    if (started) getString(R.string.team_game_on_now) else clock.format(Date(game.startsAt))
+                row.setOnClickListener {
+                    PlayerActivity.start(
+                        this@HomeActivity,
+                        urls = prefs.client().liveUrls(game.channel.streamId),
+                        title = game.channel.name,
+                        kind = Kind.LIVE,
+                        contentId = game.channel.streamId,
+                        category = game.channel.categoryId
+                    )
+                }
+                row.setOnLongClickListener {
+                    RecordDialog.showForLive(this@HomeActivity, game.channel)
+                    true
+                }
+            }
+            // There whenever a team is followed and there is anything to say.
+            panel.visibility =
+                if (following > 0 && (games.isNotEmpty() || later.isNotEmpty())) View.VISIBLE else View.GONE
+        }
+    }
+
+    // ---------- artwork ----------
+
+    private fun loadArtwork() {
+        // The three main rows say how much is behind them. They used to carry
+        // posters instead - and Live TV, having none of its own, borrowed a
+        // random film's.
+        showCount(R.id.homeLiveCount, R.string.home_count_channels, Catalog.live.size)
+        showCount(R.id.homeSeriesCount, R.string.home_count_series, Catalog.series.size)
+        showCount(R.id.homeMoviesCount, R.string.home_count_movies, Catalog.vod.size)
+
+        loadFeatured()
+    }
+
+    private fun showCount(viewId: Int, textId: Int, count: Int) {
+        val label = findViewById<TextView>(viewId)
+        // A short screen has no room for a second line under each name.
+        if (count <= 0 || shortScreen()) {
+            label.visibility = View.GONE
+            return
+        }
+        label.text = getString(textId, java.text.NumberFormat.getIntegerInstance().format(count))
+        label.visibility = View.VISIBLE
+    }
+
+    /** A phone on its side, rather than a television or a tablet. */
+    private fun shortScreen(): Boolean = resources.configuration.screenHeightDp < 430
+
+    /** The same game line, a size down, so it fits a phone held sideways. */
+    private fun fitRowToScreen(row: View) {
+        val density = resources.displayMetrics.density
+        val badge = row.findViewById<ImageView>(R.id.gameLogo)
+        val params = badge.layoutParams
+        params.width = (24 * density).toInt()
+        params.height = (24 * density).toInt()
+        badge.layoutParams = params
+        row.findViewById<TextView>(R.id.gameTitle).textSize = 13f
+        row.findViewById<TextView>(R.id.gameSub).textSize = 10f
+        row.findViewById<TextView>(R.id.gameTime).textSize = 13f
+        val side = (9 * density).toInt()
+        val edge = (6 * density).toInt()
+        row.setPadding(side, edge, side, edge)
+    }
+
+    /**
+     * The layout is drawn for a television. On a phone held sideways there is
+     * roughly two thirds of the height, so the rows keep their shape by
+     * giving up a little size: smaller names, smaller icon squares.
+     */
+    private fun fitToScreen() {
+        if (!shortScreen()) return
+        val density = resources.displayMetrics.density
+        for (id in intArrayOf(R.id.tileLiveLabel, R.id.tileSeriesLabel, R.id.tileMoviesLabel)) {
+            findViewById<TextView>(id).textSize = 17f
+        }
+        for (id in intArrayOf(R.id.liveChip, R.id.seriesChip, R.id.moviesChip)) {
+            val chip = findViewById<View>(id)
+            val params = chip.layoutParams
+            params.width = (34 * density).toInt()
+            params.height = (34 * density).toInt()
+            chip.layoutParams = params
+            val pad = (7 * density).toInt()
+            (chip as? android.view.ViewGroup)?.getChildAt(0)?.setPadding(pad, pad, pad, pad)
+        }
+        for (id in intArrayOf(
+            R.id.homeEpgLabel, R.id.homeMultiviewLabel, R.id.homeRecordingsLabel,
+            R.id.homeSearchLabel, R.id.homeRefreshLabel, R.id.homeSettingsLabel
+        )) {
+            findViewById<TextView>(id).textSize = 12f
+        }
+    }
+
+    private fun setArt(view: ImageView, url: String?) {
+        view.load(if (url.isNullOrBlank()) null else url) {
+            crossfade(true)
+            placeholder(R.drawable.tile_placeholder)
+            error(R.drawable.tile_placeholder)
+            fallback(R.drawable.tile_placeholder)
+        }
+    }
+
+    /** A recent series with a wide backdrop, so the panel looks like a poster not a thumbnail. */
+    private fun loadFeatured() {
+        val recent = Catalog.series.sortedByDescending { it.added }.take(60)
+        val choice = recent.filter { it.backdrop.isNotBlank() }.randomOrNull()
+            ?: recent.filter { it.cover.isNotBlank() }.randomOrNull()
+            ?: Catalog.series.firstOrNull { it.cover.isNotBlank() }
+        val films = Catalog.vod.filter { it.icon.isNotBlank() }.sortedByDescending { it.added }.take(40)
+
+        /*
+         * Every other time, a recently added film instead of a series. A
+         * film's entry in the list has a poster and no wide picture, so its
+         * wide picture is asked for; if none of a few tries has one, the
+         * series is shown after all rather than a poster stretched across.
+         */
+        val turn = ++featureTurn
+        if (films.isNotEmpty() && kotlin.random.Random.nextBoolean()) {
+            val candidates = films.shuffled().take(3)
+            lifecycleScope.launch {
+                for (film in candidates) {
+                    val info = withContext(Dispatchers.IO) {
+                        runCatching { prefs.client().movieInfo(film.streamId) }.getOrNull()
+                    } ?: continue
+                    if (info.backdrop.isBlank()) continue
+                    if (isFinishing || isDestroyed || turn != featureTurn) return@launch
+                    showFeature(
+                        Feature(true, film.streamId, film.name, film.icon, film.containerExtension),
+                        info.backdrop,
+                        filmMeta(info)
+                    )
+                    return@launch
+                }
+                if (!isFinishing && !isDestroyed && turn == featureTurn) showSeries(choice)
+            }
+            return
+        }
+        showSeries(choice)
+    }
+
+    private fun showSeries(choice: SeriesItem?) {
+        if (choice == null) {
+            featured = null
+            findViewById<View>(R.id.featuredTag).visibility = View.GONE
+            findViewById<ImageView>(R.id.featuredArt).setImageResource(R.drawable.tile_placeholder)
+            findViewById<TextView>(R.id.featuredTitle).text = getString(R.string.app_name)
+            findViewById<TextView>(R.id.featuredMeta).text = ""
+            return
+        }
+        showFeature(
+            Feature(false, choice.seriesId, choice.name, choice.cover),
+            choice.backdrop.ifBlank { choice.cover },
+            choice.metaLine()
+        )
+    }
+
+    private fun showFeature(feature: Feature, artUrl: String, metaText: String) {
+        featured = feature
+        findViewById<View>(R.id.featuredTag).visibility = View.VISIBLE
+        setArt(findViewById(R.id.featuredArt), artUrl)
+        findViewById<TextView>(R.id.featuredTitle).text = feature.name
+        findViewById<TextView>(R.id.featuredMeta).text = metaText
+    }
+
+    /** The star, the year and a genre, with only the ones the portal sent. */
+    private fun filmMeta(info: MovieInfo): String {
+        val bits = ArrayList<String>(3)
+        info.releaseDate.take(4).takeIf { it.length == 4 && it.all { c -> c.isDigit() } }
+            ?.let { bits.add(it) }
+        info.genre.split(',', '/', '|').map { it.trim() }.firstOrNull { it.isNotBlank() }
+            ?.let { bits.add(it) }
+        info.rating.trim().toDoubleOrNull()?.takeIf { it > 0.0 }
+            ?.let { bits.add("\u2605 " + String.format(java.util.Locale.US, "%.1f", it)) }
+        return bits.joinToString("  \u00B7  ")
+    }
+
+    // ---------- navigation ----------
+
+    private fun open(kind: Kind, startCategory: String? = null, focusSearch: Boolean = false) {
+        val intent = Intent(this, BrowseActivity::class.java)
+            .putExtra(BrowseActivity.EXTRA_KIND, kind.name)
+        if (startCategory != null) intent.putExtra(BrowseActivity.EXTRA_START_CATEGORY, startCategory)
+        if (focusSearch) intent.putExtra(BrowseActivity.EXTRA_FOCUS_SEARCH, true)
+        startActivity(intent)
+    }
+
+    private fun openFeatured() {
+        val choice = featured ?: return
+        if (choice.film) {
+            MovieActivity.start(this, choice.id, choice.name, choice.cover, choice.extension)
+            return
+        }
+        startActivity(
+            Intent(this, SeriesActivity::class.java)
+                .putExtra(SeriesActivity.EXTRA_SERIES_ID, choice.id)
+                .putExtra(SeriesActivity.EXTRA_TITLE, choice.name)
+                .putExtra(SeriesActivity.EXTRA_COVER, choice.cover)
+        )
+    }
+
+    private fun updateClock() {
+        val now = Date()
+        clock.text = SimpleDateFormat("h:mm a", Locale.getDefault()).format(now)
+        today.text = SimpleDateFormat("EEE, d MMM yyyy", Locale.getDefault()).format(now)
+    }
+
+    private companion object {
+        /** How often the games panel and the reminder are looked at. */
+        private const val TEAM_CHECK_MS = 30_000L
+
+        /** How many days out the reminder starts appearing. */
+        const val REMIND_WITHIN_DAYS = 14
+        /** Inside this it returns every time Home does, rather than once a launch. */
+        const val URGENT_DAYS = 3
+
+        /**
+         * Whether this run of the app has already given the reminder. Lives on
+         * the companion so it lasts as long as the process does - which is what
+         * "once when they open it" actually means on a box that is never closed.
+         */
+        @Volatile
+        var remindedThisLaunch = false
+    }
+}
